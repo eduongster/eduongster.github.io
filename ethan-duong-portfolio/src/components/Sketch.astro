@@ -1,0 +1,400 @@
+---
+/**
+ * Live sketches that illustrate each project's core idea.
+ * They're drawn in the browser (see src/scripts/sketches.ts), not screenshots of project code.
+ */
+interface Props {
+  kind: 'byow' | 'scheme' | 'cats' | 'robot';
+  size?: 'pane' | 'dialog';
+}
+const { kind, size = 'pane' } = Astro.props;
+
+type Tok = { t: string; c?: string };
+const KEYWORDS = new Set(['define', 'if', 'lambda']);
+function tokenize(line: string): Tok[] {
+  const out: Tok[] = [];
+  const re = /(\(|\)|\s+|[^\s()]+)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(line))) {
+    const t = m[0];
+    if (t === '(' || t === ')') out.push({ t, c: 'p' });
+    else if (/^\s+$/.test(t)) out.push({ t });
+    else if (KEYWORDS.has(t)) out.push({ t, c: 'k' });
+    else if (/^-?\d+$/.test(t)) out.push({ t, c: 'n' });
+    else if (/^[=*+\-]$/.test(t)) out.push({ t, c: 'o' });
+    else out.push({ t, c: 's' });
+  }
+  return out;
+}
+const repl: { kind: 'in' | 'cont' | 'out'; text: string }[] = [
+  { kind: 'in', text: '(define (fact n)' },
+  { kind: 'cont', text: '  (if (= n 0) 1 (* n (fact (- n 1)))))' },
+  { kind: 'out', text: 'fact' },
+  { kind: 'in', text: '(fact 10)' },
+  { kind: 'out', text: '3628800' },
+  { kind: 'in', text: '(define (make-adder n)' },
+  { kind: 'cont', text: '  (lambda (x) (+ x n)))' },
+  { kind: 'out', text: 'make-adder' },
+  { kind: 'in', text: '((make-adder 3) 4)' },
+  { kind: 'out', text: '7' },
+];
+---
+
+<div class={`sketch sketch--${kind} sketch--${size}`} data-sketch={kind} data-sketch-size={size}>
+  {
+    (kind === 'byow' || kind === 'robot') && (
+      <>
+        <canvas class="sketch__canvas" />
+        <span class="sketch__meta mono" data-sketch-meta />
+        {kind === 'byow' && size === 'dialog' && (
+          <button class="sketch__reseed mono" type="button" data-reseed>
+            New seed
+          </button>
+        )}
+      </>
+    )
+  }
+  {
+    kind === 'scheme' && (
+      <div class="repl">
+        <p class="repl__bar mono">
+          <span>scm</span> <span class="repl__dim">read · eval · print · loop</span>
+        </p>
+        <pre class="repl__code"><code>{repl.map((l) => (<span class={`repl__line repl__line--${l.kind}`} data-line={l.kind}>{l.kind === 'in' && <span class="repl__prompt">scm&gt; </span>}{l.kind === 'cont' && <span class="repl__prompt repl__prompt--cont">{'     '}</span>}{l.kind === 'out' ? <span class="repl__out">{l.text}</span> : <span class="repl__src">{tokenize(l.text).map((tok) => (tok.c ? <span class={`t-${tok.c}`}>{tok.t}</span> : tok.t))}</span>}{'\n'}</span>))}</code></pre>
+      </div>
+    )
+  }
+  {
+    kind === 'cats' && (
+      <div class="cats" data-cats>
+        <p class="cats__label mono">Reference</p>
+        <p class="cats__ref">fish swim in schools to stay safe</p>
+        <p class="cats__label mono">Typed</p>
+        <p class="cats__typed" data-cats-typed>
+          fish swim in <span class="cats__word is-fixed">schools</span> to stay safe
+        </p>
+        <div class="cats__panel" data-cats-panel>
+          <p class="cats__label mono">
+            Closest words to <span class="cats__typo" data-cats-typo>scools</span>
+          </p>
+          <ol class="cats__cands" data-cats-cands>
+            <li class="is-best">
+              <span>schools</span>
+              <span class="cats__bar" style="--d:1" />
+              <span class="mono">1 edit</span>
+            </li>
+            <li>
+              <span>school</span>
+              <span class="cats__bar" style="--d:2" />
+              <span class="mono">2 edits</span>
+            </li>
+            <li>
+              <span>shoals</span>
+              <span class="cats__bar" style="--d:2" />
+              <span class="mono">2 edits</span>
+            </li>
+          </ol>
+        </div>
+        {size === 'dialog' && (
+          <div class="cats__try">
+            <label class="cats__label mono" for="cats-try-input">
+              Try a typo
+            </label>
+            <input
+              id="cats-try-input"
+              class="cats__input"
+              type="text"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              placeholder="e.g. sharsk, corla, oecan"
+              data-cats-input
+            />
+            <p class="cats__result" data-cats-result aria-live="polite" />
+          </div>
+        )}
+      </div>
+    )
+  }
+</div>
+
+<style is:global>
+  .sketch {
+    position: relative;
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(120% 90% at 20% 0%, rgba(20, 58, 80, 0.45), transparent 60%),
+      linear-gradient(180deg, rgba(6, 20, 31, 0.92), rgba(3, 11, 18, 0.95));
+    overflow: hidden;
+  }
+  .sketch--pane {
+    aspect-ratio: 4 / 3;
+  }
+  .sketch--dialog {
+    aspect-ratio: 4 / 3.2;
+  }
+  .sketch--dialog.sketch--cats,
+  .sketch--dialog.sketch--scheme {
+    aspect-ratio: auto;
+  }
+  .sketch__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .sketch__reseed {
+    position: absolute;
+    right: 12px;
+    bottom: 8px;
+    min-height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    background: rgba(3, 11, 18, 0.7);
+    color: var(--ink);
+    transition:
+      border-color 0.3s,
+      background-color 0.3s;
+  }
+  .sketch__reseed:hover {
+    border-color: var(--lume-a32);
+    background: var(--lume-a16);
+  }
+  .sketch__meta {
+    position: absolute;
+    left: 16px;
+    bottom: 13px;
+    color: var(--ink-3);
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+
+  /* ---------- Scheme REPL ---------- */
+  .repl {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .repl__bar {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--line);
+    color: var(--lume);
+  }
+  .repl__dim {
+    color: var(--ink-3);
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+  .repl__code {
+    flex: 1;
+    margin: 0;
+    padding: 16px 18px 20px;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: clamp(0.64rem, 0.55rem + 0.3vw, 0.74rem);
+    line-height: 1.95;
+    color: var(--ink);
+    white-space: pre;
+  }
+  .sketch--dialog .repl__code {
+    font-size: clamp(0.66rem, 0.6rem + 0.3vw, 0.8rem);
+  }
+  .repl__line {
+    display: inline;
+  }
+  .repl__prompt {
+    color: var(--ink-3);
+  }
+  .repl__out {
+    color: var(--lume-bright);
+  }
+  .t-p {
+    color: var(--ink-3);
+  }
+  .t-k {
+    color: var(--lume);
+  }
+  .t-n {
+    color: #e8c9a0;
+  }
+  .t-o {
+    color: #9cc3ee;
+  }
+  .t-s {
+    color: var(--ink);
+  }
+  /* Typing sequence, driven by --delay / --n / --dur set in sketches.ts */
+  .sketch.is-typing .repl__line {
+    animation: repl-show 0s linear var(--delay) both;
+  }
+  .sketch.is-typing .repl__line--in .repl__src,
+  .sketch.is-typing .repl__line--cont .repl__src {
+    display: inline-block;
+    vertical-align: bottom;
+    overflow: hidden;
+    max-width: 0;
+    animation: repl-type var(--dur) steps(var(--n), end) var(--delay) forwards;
+  }
+  @keyframes repl-show {
+    from {
+      visibility: hidden;
+    }
+    to {
+      visibility: visible;
+    }
+  }
+  @keyframes repl-type {
+    to {
+      max-width: calc(var(--n) * 1ch);
+    }
+  }
+  .repl__caret {
+    display: inline-block;
+    width: 0.55em;
+    height: 1.1em;
+    margin-bottom: -0.2em;
+    background: var(--lume);
+    animation: caret 1s steps(1) infinite;
+  }
+  @keyframes caret {
+    50% {
+      opacity: 0;
+    }
+  }
+
+  /* ---------- CATS ---------- */
+  .cats {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    height: 100%;
+    padding: 22px 22px 24px;
+  }
+  .cats__label {
+    color: var(--ink-3);
+  }
+  .cats__ref {
+    color: var(--ink-3);
+    font-size: 1.05rem;
+    margin-bottom: 10px;
+  }
+  .cats__typed {
+    min-height: 1.6em;
+    font-size: 1.05rem;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+  .cats__word {
+    border-radius: 4px;
+    padding: 0 3px;
+    margin: 0 -3px;
+    transition:
+      background-color 0.4s,
+      color 0.4s;
+  }
+  .cats__word.is-wrong {
+    color: var(--lure);
+    text-decoration: underline wavy rgba(242, 184, 114, 0.7);
+    text-underline-offset: 4px;
+  }
+  .cats__word.is-fixed {
+    color: var(--lume-bright);
+    background: var(--lume-a16);
+  }
+  .cats__caret {
+    display: inline-block;
+    width: 1.5px;
+    height: 1.15em;
+    margin-left: 1px;
+    margin-bottom: -0.2em;
+    background: var(--lume);
+    animation: caret 1s steps(1) infinite;
+  }
+  .cats__panel {
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    transition: opacity 0.4s;
+  }
+  .cats__typo {
+    color: var(--lure);
+    text-transform: none;
+  }
+  .cats__cands {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .cats__cands li {
+    display: grid;
+    grid-template-columns: 5.5em 1fr auto;
+    align-items: center;
+    gap: 12px;
+    color: var(--ink-2);
+    font-size: 0.95rem;
+  }
+  .cats__cands li.is-best {
+    color: var(--ink);
+  }
+  .cats__cands .mono {
+    color: var(--ink-3);
+    text-transform: none;
+    letter-spacing: 0.01em;
+  }
+  .cats__bar {
+    height: 4px;
+    border-radius: 4px;
+    background: var(--line-2);
+    position: relative;
+    overflow: hidden;
+  }
+  .cats__bar::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(100% - (var(--d) - 1) * 22%);
+    border-radius: 4px;
+    background: var(--ink-3);
+  }
+  .is-best .cats__bar::after {
+    background: var(--lume);
+  }
+  .cats__try {
+    display: grid;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+  .cats__input {
+    height: 46px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line-2);
+    background: rgba(2, 10, 16, 0.7);
+    color: var(--ink);
+    font-size: 1rem;
+  }
+  .cats__input::placeholder {
+    color: var(--ink-3);
+  }
+  .cats__input:focus-visible {
+    border-color: var(--lume);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--lume-a16);
+  }
+  .cats__result {
+    min-height: 1.6em;
+    color: var(--ink-2);
+    font-size: var(--fs-small);
+  }
+  .cats__result b {
+    color: var(--lume-bright);
+    font-weight: 500;
+  }
+</style>

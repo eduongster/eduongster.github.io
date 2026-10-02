@@ -1,0 +1,92 @@
+/* Design tokens. The site is deliberately single-theme: deep ocean at night. */
+
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/instrument-serif-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/instrument-serif-latin-400-italic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../assets/fonts/instrument-sans-latin-wght-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Martian Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/martian-mono-latin-400-normal.woff2') format('woff2');
+}
+
+:root {
+  color-scheme: dark;
+
+  /* Water, surface to seafloor */
+  --moonlit: #0e2536;
+  --shelf: #0a1b2a;
+  --deep: #051019;
+  --abyss: #02060b;
+
+  /* Ink */
+  --ink: #e6eff3;
+  --ink-2: #a9bcc7;
+  --ink-3: #8ba0ad;
+  --ink-4: #56707e; /* decorative strokes only, never body text */
+
+  /* Light. Lume = bioluminescence (and dive-watch lume). Lure = the rare warm glow. */
+  --lume: #7fe3d0;
+  --lume-bright: #c8fff3;
+  --lume-ink: #04211b;
+  --lume-a08: rgba(127, 227, 208, 0.08);
+  --lume-a16: rgba(127, 227, 208, 0.16);
+  --lume-a32: rgba(127, 227, 208, 0.32);
+  --moonlight: rgba(196, 226, 240, 1);
+  --lure: #f2b872;
+
+  /* Lines and surfaces */
+  --line: rgba(150, 196, 218, 0.12);
+  --line-2: rgba(150, 196, 218, 0.2);
+  --line-3: rgba(150, 196, 218, 0.32);
+  --panel: rgba(9, 25, 38, 0.72);
+  --panel-2: rgba(12, 33, 49, 0.66);
+  --glass: rgba(4, 13, 21, 0.62);
+
+  /* Type */
+  --font-display: 'Instrument Serif', 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-sans: 'Instrument Sans', 'Instrument Sans Variable', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Martian Mono', ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+
+  --fs-hero: clamp(3.9rem, 1.6rem + 9.2vw, 10.75rem);
+  --fs-h2: clamp(2.6rem, 1.7rem + 3.8vw, 5.25rem);
+  --fs-h3: clamp(1.75rem, 1.3rem + 1.6vw, 2.6rem);
+  --fs-h4: clamp(1.3rem, 1.15rem + 0.5vw, 1.55rem);
+  --fs-lead: clamp(1.18rem, 1.02rem + 0.62vw, 1.5rem);
+  --fs-body: 1.0625rem;
+  --fs-small: 0.9375rem;
+  --fs-meta: 0.6875rem;
+
+  /* Space */
+  --gutter: clamp(16px, 5vw, 56px);
+  --maxw: 1180px;
+  --section-pad: clamp(84px, 10.5vw, 150px);
+  --radius: 10px;
+  --radius-lg: 16px;
+  --nav-h: 60px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-swim: cubic-bezier(0.37, 0, 0.63, 1);
+}

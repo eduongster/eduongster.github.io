@@ -1,0 +1,320 @@
+---
+import Icon from './Icon.astro';
+import { person, stations } from '../content/site';
+import { withBase, formatDepth } from '../lib/url';
+
+const links = stations.filter((s) => s.inNav);
+const resume = withBase(person.resumeFile);
+---
+
+<header class="nav" data-nav>
+  <div class="nav__inner">
+    <a class="nav__brand" href="#top" aria-label="Ethan Duong, back to top">
+      <Icon name="fish" size={20} class="nav__fish" />
+      <span class="nav__name">Ethan Duong</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Sections">
+      <ul>
+        {
+          links.map((l) => (
+            <li>
+              <a href={`#${l.id}`} data-nav-link={l.id}>
+                {l.nav}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="nav__end">
+      <span class="nav__depth mono unit" data-depth-mini aria-hidden="true">0 m</span>
+      <a class="nav__resume" href={resume} target="_blank" rel="noopener" data-resume-link>
+        Resume <Icon name="arrow-out" size={14} />
+      </a>
+      <button class="nav__toggle" type="button" aria-expanded="false" aria-controls="menu" data-menu-toggle>
+        <span class="visually-hidden" data-menu-label>Open menu</span>
+        <span class="nav__burger" aria-hidden="true"><i></i><i></i></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="menu" id="menu" data-menu hidden>
+  <nav aria-label="Sections, mobile">
+    <ol class="menu__list">
+      {
+        links.map((l, i) => (
+          <li style={`--i:${i}`}>
+            <a href={`#${l.id}`} data-menu-link>
+              <span class="menu__label">{l.nav}</span>
+              <span class="menu__depth mono unit">{formatDepth(l.depth)}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </nav>
+  <div class="menu__foot" style={`--i:${links.length}`}>
+    <a href={person.github} target="_blank" rel="noopener">GitHub <Icon name="arrow-out" size={14} /></a>
+    <a href={person.linkedin} target="_blank" rel="noopener">LinkedIn <Icon name="arrow-out" size={14} /></a>
+    <a href={resume} target="_blank" rel="noopener" data-resume-link>Resume <Icon name="arrow-out" size={14} /></a>
+  </div>
+</div>
+
+<style>
+  .nav {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 70;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) calc(var(--gutter) - 12px) 0;
+    pointer-events: none;
+  }
+  .nav__inner {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    max-width: calc(var(--maxw) + 24px);
+    height: var(--nav-h);
+    margin-inline: auto;
+    padding: 0 10px 0 12px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    transition:
+      background-color 0.5s var(--ease-out),
+      border-color 0.5s var(--ease-out),
+      box-shadow 0.5s var(--ease-out),
+      backdrop-filter 0.5s var(--ease-out);
+  }
+  .nav.is-scrolled .nav__inner {
+    background: var(--glass);
+    border-color: var(--line);
+    -webkit-backdrop-filter: blur(16px) saturate(1.25);
+    backdrop-filter: blur(16px) saturate(1.25);
+    box-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.85);
+  }
+
+  .nav__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: auto;
+    padding: 6px 4px;
+    color: var(--ink);
+  }
+  .nav__brand :global(.nav__fish) {
+    color: var(--lume);
+    transition: transform 0.6s var(--ease-out);
+  }
+  .nav__brand:hover :global(.nav__fish) {
+    transform: translateX(3px);
+  }
+  .nav__name {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+    line-height: 1;
+    letter-spacing: 0.005em;
+  }
+
+  .nav__links ul {
+    display: flex;
+    gap: 4px;
+  }
+  .nav__links a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 999px;
+    color: var(--ink-2);
+    font-size: 0.9375rem;
+    transition:
+      color 0.3s,
+      background-color 0.3s;
+  }
+  .nav__links a:hover {
+    color: var(--ink);
+    background: rgba(150, 196, 218, 0.06);
+  }
+  .nav__links a::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 3px;
+    width: 4px;
+    height: 4px;
+    margin-left: -2px;
+    border-radius: 50%;
+    background: var(--lume);
+    box-shadow: 0 0 10px 1px rgba(127, 227, 208, 0.7);
+    opacity: 0;
+    transform: scale(0.2);
+    transition:
+      opacity 0.4s var(--ease-out),
+      transform 0.4s var(--ease-out);
+  }
+  .nav__links a[aria-current='location'] {
+    color: var(--ink);
+  }
+  .nav__links a[aria-current='location']::before {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .nav__end {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .nav__resume {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 14px 0 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition:
+      border-color 0.3s,
+      background-color 0.3s;
+  }
+  .nav__resume:hover {
+    border-color: var(--lume-a32);
+    background: var(--lume-a08);
+  }
+
+  .nav__depth {
+    display: none;
+    color: var(--lume);
+    min-width: 7ch;
+    text-align: right;
+  }
+
+  .nav__toggle {
+    display: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line-2);
+  }
+  .nav__burger {
+    position: relative;
+    width: 18px;
+    height: 10px;
+  }
+  .nav__burger i {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 1.5px;
+    border-radius: 2px;
+    background: var(--ink);
+    transition:
+      transform 0.45s var(--ease-out),
+      top 0.45s var(--ease-out);
+  }
+  .nav__burger i:first-child {
+    top: 0;
+  }
+  .nav__burger i:last-child {
+    top: 8.5px;
+  }
+  .nav__toggle[aria-expanded='true'] .nav__burger i:first-child {
+    top: 4.25px;
+    transform: rotate(45deg);
+  }
+  .nav__toggle[aria-expanded='true'] .nav__burger i:last-child {
+    top: 4.25px;
+    transform: rotate(-45deg);
+  }
+
+  @media (max-width: 1339px) {
+    .nav__depth {
+      display: inline-block;
+    }
+  }
+  @media (max-width: 899px) {
+    .nav__links,
+    .nav__resume {
+      display: none;
+    }
+    .nav__toggle {
+      display: inline-flex;
+    }
+    .nav__name {
+      font-size: 1.3rem;
+    }
+  }
+
+  /* ---------- Mobile menu ---------- */
+  .menu {
+    position: fixed;
+    inset: 0;
+    z-index: 65;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 40px;
+    padding: calc(var(--nav-h) + 48px + env(safe-area-inset-top, 0px)) var(--gutter)
+      calc(32px + env(safe-area-inset-bottom, 0px));
+    background:
+      radial-gradient(120% 60% at 80% 0%, rgba(38, 86, 110, 0.35), transparent 60%),
+      #02080d;
+    opacity: 0;
+    transition: opacity 0.45s var(--ease-out);
+    overflow-y: auto;
+  }
+  .menu.is-open {
+    opacity: 1;
+  }
+  .menu__list li,
+  .menu__foot {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.6s var(--ease-out),
+      transform 0.7s var(--ease-out);
+    transition-delay: calc(80ms + var(--i) * 55ms);
+  }
+  .menu.is-open .menu__list li,
+  .menu.is-open .menu__foot {
+    opacity: 1;
+    transform: none;
+  }
+  .menu__list a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 2px;
+    border-bottom: 1px solid var(--line);
+  }
+  .menu__label {
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 11vw, 3.4rem);
+    line-height: 1;
+  }
+  .menu__depth {
+    color: var(--lume);
+  }
+  .menu__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    color: var(--ink-2);
+  }
+  .menu__foot a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+  }
+</style>

@@ -1,0 +1,434 @@
+---
+import SectionHead from './SectionHead.astro';
+import { skillGroups, projectSkills } from '../content/site';
+
+/* Hand-placed "schools" so labels never collide. viewBox is 640 x 520. */
+const layout: Record<string, [number, number]> = {
+  // Hardware, top left
+  VEX: [56, 80],
+  'Hardware design': [88, 118],
+  // AI & speech, top right: a column in pipeline order
+  openWakeWord: [436, 86],
+  webrtcvad: [436, 126],
+  'whisper.cpp': [436, 166],
+  'Claude API': [436, 206],
+  // Languages, centre
+  Python: [262, 246],
+  Scheme: [204, 208],
+  SQL: [126, 244],
+  Java: [176, 288],
+  C: [236, 324],
+  'C++': [320, 318],
+  HTML: [190, 364],
+  CSS: [286, 372],
+  // Concepts, bottom left
+  OOP: [52, 432],
+  'Functional programming': [128, 452],
+  'Data structures': [60, 484],
+  Algorithms: [200, 492],
+  // Tools, bottom right
+  Git: [420, 312],
+  GitHub: [476, 350],
+  'Jupyter Notebook': [410, 402],
+  'VS Code': [496, 442],
+  'IntelliJ IDEA': [416, 486],
+};
+const groupLabel: Record<string, [number, number]> = {
+  hardware: [40, 46],
+  ai: [404, 46],
+  lang: [96, 196],
+  concepts: [40, 404],
+  tools: [404, 280],
+};
+const usage = new Map<string, string[]>();
+for (const p of projectSkills) for (const s of p.skills) usage.set(s, [...(usage.get(s) ?? []), p.label]);
+
+const nodes = skillGroups.flatMap((g) =>
+  g.items.map((name) => {
+    const [x, y] = layout[name];
+    const used = usage.get(name)?.length ?? 0;
+    return { name, group: g.id, x, y, r: used >= 3 ? 6 : used >= 1 ? 4 : 2.6, used };
+  }),
+);
+const byName = new Map(nodes.map((n) => [n.name, n]));
+
+/* Faint "school" lines inside each group: a minimum spanning tree, so the links stay short and never tangle. */
+const schoolLinks = skillGroups.flatMap((g) => {
+  const pts = g.items.map((name) => byName.get(name)!);
+  const inTree = [pts[0]];
+  const rest = pts.slice(1);
+  const links: (readonly [(typeof pts)[number], (typeof pts)[number]])[] = [];
+  while (rest.length) {
+    let best = { d: Infinity, a: pts[0], i: 0 };
+    for (const a of inTree)
+      rest.forEach((b, i) => {
+        const d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (d < best.d) best = { d, a, i };
+      });
+    const [b] = rest.splice(best.i, 1);
+    inTree.push(b);
+    links.push([best.a, b] as const);
+  }
+  return links;
+});
+/* Bright constellation per project. Atlas follows its pipeline; the rest connect in order. */
+const edgeList: Record<string, [string, string][]> = {
+  atlas: [
+    ['Python', 'openWakeWord'],
+    ['openWakeWord', 'webrtcvad'],
+    ['webrtcvad', 'whisper.cpp'],
+    ['whisper.cpp', 'Claude API'],
+    ['Python', 'Git'],
+    ['Git', 'GitHub'],
+  ],
+};
+const projectLinks = projectSkills.map((p) => {
+  const pairs = edgeList[p.id] ?? p.skills.slice(1).map((s, i) => [p.skills[i], s] as [string, string]);
+  return {
+    id: p.id,
+    segs: pairs
+      .map(([a, b]) => [byName.get(a), byName.get(b)] as const)
+      .filter((pair): pair is readonly [(typeof nodes)[number], (typeof nodes)[number]] => !!pair[0] && !!pair[1]),
+  };
+});
+const slug = (s: string) => s.toLowerCase().replace(/\+/g, 'p').replace(/[^a-z0-9]+/g, '-');
+const DEFAULT = 'atlas';
+const defaultSkills = new Set(projectSkills.find((p) => p.id === DEFAULT)?.skills ?? []);
+const labelLeft = new Set<string>();
+---
+
+<section id="skills" class="section skills" aria-labelledby="skills-title" data-station="skills">
+  <div class="container">
+    <SectionHead
+      id="skills"
+      label="Skills"
+      title="The <em>toolkit</em>"
+      intro="Grouped the way I use them. Pick a project to see which tools it pulled together."
+    />
+
+    <div class="skills__grid" data-skills data-active={DEFAULT}>
+      <div class="skills__lists" data-reveal>
+        {
+          skillGroups.map((g) => (
+            <div class="sgroup">
+              <h3 class="sgroup__label mono">{g.label}</h3>
+              <ul class="sgroup__items">
+                {g.items.map((s) => (
+                  <li
+                    class:list={['chip', { 'is-lit': defaultSkills.has(s) }]}
+                    data-skill={slug(s)}
+                    data-projects={projectSkills
+                      .filter((p) => p.skills.includes(s))
+                      .map((p) => p.id)
+                      .join(' ')}
+                  >
+                    {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+
+      <figure class="constellation" data-reveal style="--i:1">
+        <div class="constellation__filters" role="group" aria-label="Show the stack for a project">
+          {
+            projectSkills.map((p) => (
+              <button
+                class="filter"
+                type="button"
+                data-filter={p.id}
+                aria-pressed={p.id === DEFAULT ? 'true' : 'false'}
+              >
+                {p.label}
+              </button>
+            ))
+          }
+        </div>
+
+        <div class="constellation__stage">
+          <svg class="constellation__svg" viewBox="0 0 640 520" aria-hidden="true" focusable="false" data-constellation>
+            <g class="c-school">
+              {
+                schoolLinks.map(([a, b]) => (
+                  <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} data-a={slug(a.name)} data-b={slug(b.name)} />
+                ))
+              }
+            </g>
+            {
+              projectLinks.map((p) => (
+                <g class:list={['c-project', { 'is-on': p.id === DEFAULT }]} data-links={p.id}>
+                  {p.segs.map(([a, b]) => (
+                    <line
+                      x1={a.x}
+                      y1={a.y}
+                      x2={b.x}
+                      y2={b.y}
+                      data-a={slug(a.name)}
+                      data-b={slug(b.name)}
+                      pathLength="1"
+                    />
+                  ))}
+                </g>
+              ))
+            }
+            {
+              Object.entries(groupLabel).map(([id, [x, y]]) => (
+                <text class="c-group" x={x} y={y}>
+                  {skillGroups.find((g) => g.id === id)!.label.toUpperCase()}
+                </text>
+              ))
+            }
+            {
+              nodes.map((n) => (
+                <g
+                  class:list={['c-node', { 'is-used': n.used, 'is-lit': defaultSkills.has(n.name) }]}
+                  data-node={slug(n.name)}
+                  data-x={n.x}
+                  data-y={n.y}
+                  transform={`translate(${n.x} ${n.y})`}
+                >
+                  <circle class="c-halo" r={n.r + 7} />
+                  <circle class="c-dot" r={n.r} />
+                  <text
+                    class="c-label"
+                    x={labelLeft.has(n.name) ? -(n.r + 8) : n.r + 8}
+                    y="4"
+                    text-anchor={labelLeft.has(n.name) ? 'end' : 'start'}
+                  >
+                    {n.name}
+                  </text>
+                </g>
+              ))
+            }
+          </svg>
+        </div>
+
+        <figcaption class="constellation__caption" aria-live="polite">
+          {
+            projectSkills.map((p) => (
+              <p data-caption={p.id} hidden={p.id !== DEFAULT}>
+                <span class="mono">{p.label}</span> {p.skills.join(' · ')}
+              </p>
+            ))
+          }
+          <p class="constellation__key mono" aria-hidden="true">
+            Node size = number of projects that used it
+          </p>
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<style>
+  .skills__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(32px, 5vw, 80px);
+    align-items: start;
+  }
+
+  /* ---------- Lists ---------- */
+  .skills__lists {
+    display: grid;
+    gap: 26px;
+  }
+  .sgroup {
+    display: grid;
+    gap: 12px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .sgroup:last-child {
+    border-bottom: 0;
+  }
+  .sgroup__label {
+    color: var(--ink-3);
+  }
+  .sgroup__items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 13px;
+    border-radius: 8px;
+    border: 1px solid var(--line-2);
+    background: rgba(5, 16, 26, 0.5);
+    color: var(--ink-2);
+    font-size: 0.95rem;
+    transition:
+      color 0.4s var(--ease-out),
+      border-color 0.4s var(--ease-out),
+      background-color 0.4s var(--ease-out),
+      box-shadow 0.5s var(--ease-out),
+      transform 0.5s var(--ease-out);
+  }
+  .chip.is-lit {
+    color: var(--ink);
+    border-color: rgba(127, 227, 208, 0.55);
+    background: rgba(127, 227, 208, 0.09);
+    box-shadow: 0 0 22px -8px rgba(127, 227, 208, 0.6);
+  }
+  .chip.is-hover {
+    color: var(--ink);
+    border-color: var(--line-3);
+    transform: translateY(-1px);
+  }
+
+  /* ---------- Constellation ---------- */
+  .constellation {
+    display: grid;
+    gap: 18px;
+  }
+  .constellation__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 15px;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    color: var(--ink-2);
+    font-size: 0.92rem;
+    transition:
+      color 0.3s,
+      border-color 0.3s,
+      background-color 0.3s;
+  }
+  .filter::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ink-4);
+    transition:
+      background-color 0.3s,
+      box-shadow 0.3s;
+  }
+  .filter:hover {
+    color: var(--ink);
+    border-color: var(--line-3);
+  }
+  .filter[aria-pressed='true'] {
+    color: var(--ink);
+    border-color: rgba(127, 227, 208, 0.55);
+    background: rgba(127, 227, 208, 0.08);
+  }
+  .filter[aria-pressed='true']::before {
+    background: var(--lume-bright);
+    box-shadow: 0 0 10px 1px rgba(127, 227, 208, 0.8);
+  }
+  .constellation__stage {
+    position: relative;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(80% 70% at 40% 40%, rgba(18, 52, 74, 0.35), transparent 70%),
+      rgba(3, 11, 18, 0.55);
+    overflow: hidden;
+  }
+  .constellation__svg {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .c-school line {
+    stroke: rgba(150, 196, 218, 0.14);
+    stroke-width: 1;
+  }
+  .c-project line {
+    stroke: var(--lume);
+    stroke-width: 1.2;
+    stroke-linecap: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    opacity: 0;
+    filter: drop-shadow(0 0 4px rgba(127, 227, 208, 0.7));
+    transition:
+      stroke-dashoffset 1.2s var(--ease-out),
+      opacity 0.4s;
+  }
+  .c-project.is-on line {
+    stroke-dashoffset: 0;
+    opacity: 0.85;
+  }
+  .c-group {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    fill: var(--ink-3);
+  }
+  .c-dot {
+    fill: var(--ink-3);
+    transition:
+      fill 0.4s,
+      r 0.4s;
+  }
+  .c-node.is-used .c-dot {
+    fill: var(--ink-2);
+  }
+  .c-halo {
+    fill: rgba(127, 227, 208, 0.18);
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  .c-label {
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    fill: var(--ink-2);
+    transition: fill 0.4s;
+  }
+  .c-node.is-lit .c-dot {
+    fill: var(--lume-bright);
+  }
+  .c-node.is-lit .c-halo {
+    opacity: 1;
+  }
+  .c-node.is-lit .c-label {
+    fill: var(--ink);
+  }
+  .c-node.is-hover .c-label {
+    fill: var(--lume-bright);
+  }
+  .constellation__caption {
+    display: grid;
+    gap: 10px;
+    color: var(--ink-2);
+    font-size: var(--fs-small);
+  }
+  .constellation__caption .mono {
+    color: var(--lume);
+    margin-right: 8px;
+  }
+  .constellation__caption .constellation__key {
+    color: var(--ink-3);
+    text-transform: none;
+    letter-spacing: 0.02em;
+  }
+
+  @media (max-width: 960px) {
+    .skills__grid {
+      grid-template-columns: 1fr;
+    }
+    .constellation {
+      order: -1;
+    }
+  }
+  @media (max-width: 640px) {
+    .constellation__stage,
+    .constellation__key {
+      display: none;
+    }
+  }
+</style>

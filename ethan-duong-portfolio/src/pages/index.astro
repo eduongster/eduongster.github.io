@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import DepthGauge from '../components/DepthGauge.astro';
+import Hero from '../components/Hero.astro';
+import About from '../components/About.astro';
+import Projects from '../components/Projects.astro';
+import Experience from '../components/Experience.astro';
+import Skills from '../components/Skills.astro';
+import Education from '../components/Education.astro';
+import Contact from '../components/Contact.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Base>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <canvas class="ocean-canvas" aria-hidden="true" data-ocean></canvas>
+  <div class="grain" aria-hidden="true"></div>
+  <Nav />
+  <DepthGauge />
+  <main id="main" tabindex="-1">
+    <Hero />
+    <About />
+    <Projects />
+    <Experience />
+    <Skills />
+    <Education />
+    <Contact />
+  </main>
+  <Footer />
+  <div class="toast" role="status" aria-live="polite" data-toast></div>
+  <script>
+    import '../scripts/main';
+  </script>
+</Base>

@@ -1,0 +1,649 @@
+---
+import Icon from './Icon.astro';
+import { atlas } from '../content/site';
+
+const pad = (n: number) => String(n + 1).padStart(2, '0');
+---
+
+<article id="atlas" class="atlas" aria-labelledby="atlas-title" data-reveal>
+  <div class="atlas__glow" aria-hidden="true"></div>
+
+  <div class="atlas__head">
+    <div class="atlas__intro">
+      <p class="atlas__kicker mono">
+        <span class="atlas__live" aria-hidden="true"></span>
+        {atlas.kicker} <span class="atlas__sep" aria-hidden="true">/</span> {atlas.status}
+      </p>
+      <h3 class="atlas__title" id="atlas-title">{atlas.name}</h3>
+      <p class="atlas__subtitle chart-label">{atlas.subtitle}</p>
+    </div>
+    <div class="atlas__summary">
+      <p>{atlas.summary}</p>
+      <ul class="tag-list" aria-label="Built with">
+        {atlas.stack.map((t) => <li class="tag">{t}</li>)}
+      </ul>
+      <a class="btn atlas__repo" href={atlas.repo} target="_blank" rel="noopener">
+        View the code on GitHub <Icon name="arrow-out" class="arrow-out" />
+      </a>
+    </div>
+  </div>
+
+  <!-- Architecture: one conversation turn -->
+  <div class="pipe" data-pipeline>
+    <div class="pipe__bar">
+      <p class="pipe__label mono">Architecture <span aria-hidden="true">·</span> one conversation turn</p>
+      <p class="pipe__hint mono" aria-hidden="true">Select a stage</p>
+    </div>
+
+    <div class="pipe__flow">
+      <div class="pipe__io pipe__io--in" aria-hidden="true">
+        <span class="pipe__wave"><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="mono">You speak</span>
+      </div>
+
+      <div class="pipe__track">
+        <div class="pipe__wire" aria-hidden="true"><span class="pipe__pulse"></span></div>
+        <div class="pipe__stages" role="tablist" aria-label="Atlas pipeline stages">
+          {
+            atlas.stages.map((s, i) => (
+              <button
+                class="pipe__stage"
+                type="button"
+                role="tab"
+                id={`stage-tab-${s.id}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+                aria-controls={`stage-panel-${s.id}`}
+                tabindex={i === 0 ? 0 : -1}
+                data-stage={i}
+                style={`--s:${i}`}
+              >
+                <span class="pipe__num mono">{pad(i)}</span>
+                <span class="pipe__name">{s.short}</span>
+                <span class="pipe__tech mono">{s.tech}</span>
+              </button>
+            ))
+          }
+        </div>
+        <div class="pipe__loop" aria-hidden="true">
+          <span class="pipe__loop-line"><span class="pipe__loop-pulse"></span></span>
+          <span class="pipe__loop-label mono"><Icon name="loop" size={13} /> Back to listening</span>
+        </div>
+      </div>
+
+      <div class="pipe__io pipe__io--out" aria-hidden="true">
+        <span class="pipe__wave pipe__wave--out"><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="mono">Atlas replies</span>
+      </div>
+    </div>
+
+    {
+      atlas.stages.map((s, i) => (
+        <div
+          class="pipe__panel"
+          role="tabpanel"
+          id={`stage-panel-${s.id}`}
+          aria-labelledby={`stage-tab-${s.id}`}
+          hidden={i !== 0}
+          tabindex="0"
+        >
+          <p class="pipe__panel-meta mono">
+            Stage {pad(i)} of 05 <span aria-hidden="true">·</span> <span class="unit">{s.tech}</span>
+          </p>
+          <h4 class="pipe__panel-title">{s.name}</h4>
+          <p class="pipe__panel-job">{s.job}</p>
+          <p class="pipe__panel-note">{s.note}</p>
+        </div>
+      ))
+    }
+
+    <!-- Small screens: the whole pipeline as a readable list -->
+    <ol class="pipe__list">
+      {
+        atlas.stages.map((s, i) => (
+          <li class="pipe__item" style={`--s:${i}`}>
+            <span class="pipe__item-num mono">{pad(i)}</span>
+            <div>
+              <p class="pipe__item-name">
+                {s.name} <span class="mono">{s.tech}</span>
+              </p>
+              <p class="pipe__item-job">{s.job}</p>
+            </div>
+          </li>
+        ))
+      }
+      <li class="pipe__item pipe__item--loop" aria-hidden="true">
+        <span class="pipe__item-num"><Icon name="loop" size={14} /></span>
+        <p class="mono">Back to listening</p>
+      </li>
+    </ol>
+  </div>
+
+  <div class="atlas__notes">
+    {
+      atlas.highlights.map((h) => (
+        <div class="atlas__note">
+          <h4>{h.title}</h4>
+          <p>{h.body}</p>
+        </div>
+      ))
+    }
+    <div class="atlas__note atlas__next">
+      <h4 class="mono">Next up</h4>
+      <ul>
+        {atlas.next.map((n) => <li>{n}</li>)}
+      </ul>
+    </div>
+  </div>
+</article>
+
+<style>
+  .atlas {
+    position: relative;
+    isolation: isolate;
+    padding: clamp(28px, 4.6vw, 64px);
+    border-radius: 22px;
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(180deg, rgba(16, 44, 64, 0.62), rgba(6, 19, 30, 0.72) 42%, rgba(4, 13, 21, 0.78)),
+      var(--deep);
+    box-shadow:
+      inset 0 1px 0 rgba(200, 236, 246, 0.08),
+      0 40px 120px -60px rgba(0, 0, 0, 0.9);
+    overflow: hidden;
+  }
+  .atlas__glow {
+    position: absolute;
+    z-index: -1;
+    top: -40%;
+    left: -10%;
+    width: 80%;
+    height: 90%;
+    background: radial-gradient(closest-side, rgba(127, 227, 208, 0.1), transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ---------- Head ---------- */
+  .atlas__head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: clamp(28px, 5vw, 80px);
+    align-items: end;
+  }
+  .atlas__kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--lume);
+  }
+  .atlas__sep {
+    color: var(--ink-4);
+  }
+  .atlas__live {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--lume-bright);
+    box-shadow: 0 0 10px 1px rgba(127, 227, 208, 0.8);
+    animation: blink 2.6s ease-in-out infinite;
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0.35;
+    }
+  }
+  .atlas__title {
+    margin-top: 14px;
+    font-family: var(--font-display);
+    font-size: clamp(4.6rem, 2.4rem + 8vw, 9.5rem);
+    line-height: 0.82;
+    letter-spacing: -0.03em;
+    margin-left: -0.05em;
+  }
+  .atlas__subtitle {
+    margin-top: 14px;
+    font-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.9rem);
+    color: var(--ink-2);
+  }
+  .atlas__summary {
+    display: grid;
+    gap: 20px;
+    justify-items: start;
+  }
+  .atlas__summary p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--ink);
+    max-width: 50ch;
+  }
+  .atlas__repo {
+    margin-top: 4px;
+  }
+
+  /* ---------- Pipeline ---------- */
+  .pipe {
+    margin-top: clamp(40px, 6vw, 72px);
+    padding-top: clamp(24px, 3vw, 32px);
+    border-top: 1px solid var(--line);
+  }
+  .pipe__bar {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    color: var(--ink-3);
+    margin-bottom: 26px;
+  }
+  .pipe__label {
+    color: var(--ink-2);
+  }
+  .pipe__flow {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 18px;
+  }
+  .pipe__io {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    padding-top: 26px;
+    color: var(--ink-3);
+    width: 84px;
+    text-align: center;
+  }
+  .pipe__wave {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 26px;
+  }
+  .pipe__wave i {
+    width: 2px;
+    height: 100%;
+    border-radius: 2px;
+    background: var(--ink-3);
+    transform-origin: center;
+    animation: wave 1.4s ease-in-out infinite;
+  }
+  .pipe__wave i:nth-child(1) {
+    animation-delay: -0.2s;
+    height: 40%;
+  }
+  .pipe__wave i:nth-child(2) {
+    animation-delay: -0.6s;
+    height: 80%;
+  }
+  .pipe__wave i:nth-child(3) {
+    animation-delay: -0.1s;
+  }
+  .pipe__wave i:nth-child(4) {
+    animation-delay: -0.9s;
+    height: 70%;
+  }
+  .pipe__wave i:nth-child(5) {
+    animation-delay: -0.4s;
+    height: 35%;
+  }
+  .pipe__wave--out i {
+    background: var(--lume);
+  }
+  @keyframes wave {
+    50% {
+      transform: scaleY(0.35);
+    }
+  }
+
+  .pipe__track {
+    position: relative;
+  }
+  .pipe__wire {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 38px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--line-2), var(--line-3), var(--line-2));
+  }
+  .pipe__pulse,
+  .pipe__loop-pulse {
+    position: absolute;
+    top: -3px;
+    left: 0;
+    width: 7px;
+    height: 7px;
+    margin-left: -3px;
+    border-radius: 50%;
+    background: var(--lume-bright);
+    box-shadow:
+      0 0 12px 3px rgba(127, 227, 208, 0.7),
+      -18px 0 18px -6px rgba(127, 227, 208, 0.45);
+    opacity: 0;
+    animation: pulse-run var(--cycle, 8s) linear infinite;
+  }
+  @keyframes pulse-run {
+    0% {
+      left: 0%;
+      opacity: 0;
+    }
+    3% {
+      opacity: 1;
+    }
+    68% {
+      left: 100%;
+      opacity: 1;
+    }
+    72%,
+    100% {
+      left: 100%;
+      opacity: 0;
+    }
+  }
+
+  .pipe__stages {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .pipe__stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    min-height: 118px;
+    padding: 16px 16px 18px;
+    border-radius: 12px;
+    border: 1px solid var(--line-2);
+    background: rgba(5, 16, 26, 0.92);
+    text-align: left;
+    transition:
+      border-color 0.35s var(--ease-out),
+      background-color 0.35s var(--ease-out),
+      transform 0.5s var(--ease-out),
+      box-shadow 0.5s var(--ease-out);
+    animation: stage-glow var(--cycle, 8s) linear infinite;
+    animation-delay: calc(var(--cycle, 8s) * (0.025 + var(--s) * 0.136));
+  }
+  @keyframes stage-glow {
+    0% {
+      box-shadow: 0 0 0 0 rgba(127, 227, 208, 0);
+    }
+    3% {
+      box-shadow:
+        0 0 0 1px rgba(127, 227, 208, 0.45),
+        0 0 36px -8px rgba(127, 227, 208, 0.55);
+    }
+    14%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(127, 227, 208, 0);
+    }
+  }
+  .pipe__stage:hover {
+    border-color: var(--line-3);
+    transform: translateY(-2px);
+  }
+  .pipe__stage[aria-selected='true'] {
+    border-color: rgba(127, 227, 208, 0.55);
+    background: linear-gradient(180deg, rgba(127, 227, 208, 0.12), rgba(5, 16, 26, 0.95) 70%);
+  }
+  .pipe__num {
+    color: var(--ink-3);
+  }
+  .pipe__stage[aria-selected='true'] .pipe__num {
+    color: var(--lume);
+  }
+  .pipe__name {
+    font-size: 1.12rem;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .pipe__tech {
+    margin-top: auto;
+    padding-top: 8px;
+    color: var(--ink-2);
+    text-transform: none;
+    letter-spacing: 0.01em;
+    font-size: 0.66rem;
+  }
+
+  .pipe__loop {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+    height: 44px;
+  }
+  .pipe__loop-line {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: 0;
+    height: 18px;
+    border: 1px solid var(--line-2);
+    border-top: 0;
+    border-radius: 0 0 14px 14px;
+  }
+  .pipe__loop-line .pipe__loop-pulse {
+    top: auto;
+    bottom: -4px;
+    animation-name: loop-run;
+  }
+  @keyframes loop-run {
+    0%,
+    72% {
+      left: 100%;
+      opacity: 0;
+    }
+    75% {
+      opacity: 1;
+    }
+    97% {
+      left: 0%;
+      opacity: 1;
+    }
+    100% {
+      left: 0%;
+      opacity: 0;
+    }
+  }
+  .pipe__loop-label {
+    position: relative;
+    top: 28px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--ink-3);
+  }
+
+  .pipe__panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+    grid-template-areas:
+      'meta meta'
+      'title job'
+      'title note';
+    column-gap: clamp(24px, 4vw, 64px);
+    row-gap: 10px;
+    margin-top: 28px;
+    padding: 26px 28px;
+    border-radius: 14px;
+    background: rgba(2, 10, 16, 0.55);
+    border: 1px solid var(--line);
+    animation: panel-in 0.55s var(--ease-out);
+  }
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+  .pipe__panel-meta {
+    grid-area: meta;
+    color: var(--lume);
+  }
+  .pipe__panel-title {
+    grid-area: title;
+    font-family: var(--font-display);
+    font-size: var(--fs-h3);
+    line-height: 1.02;
+  }
+  .pipe__panel-job {
+    grid-area: job;
+    color: var(--ink);
+    font-size: 1.05rem;
+  }
+  .pipe__panel-note {
+    grid-area: note;
+    color: var(--ink-2);
+    font-size: var(--fs-small);
+  }
+
+  .pipe__list {
+    display: none;
+  }
+
+  /* Pause the ambient loop when the pipeline is off-screen */
+  .pipe:not(.is-live) :is(.pipe__pulse, .pipe__loop-pulse, .pipe__stage, .pipe__wave i, .pipe__item-num) {
+    animation-play-state: paused;
+  }
+
+  /* ---------- Notes ---------- */
+  .atlas__notes {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(20px, 3vw, 40px);
+    margin-top: clamp(40px, 5vw, 64px);
+    padding-top: clamp(28px, 3vw, 36px);
+    border-top: 1px solid var(--line);
+  }
+  .atlas__note h4 {
+    font-size: 1.02rem;
+    font-weight: 600;
+    letter-spacing: -0.003em;
+    color: var(--ink);
+  }
+  .atlas__note p {
+    margin-top: 8px;
+    color: var(--ink-2);
+    font-size: var(--fs-small);
+  }
+  .atlas__next h4 {
+    color: var(--lume);
+    font-weight: 400;
+  }
+  .atlas__next ul {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .atlas__next li {
+    position: relative;
+    padding-left: 18px;
+    color: var(--ink-2);
+    font-size: var(--fs-small);
+    line-height: 1.45;
+  }
+  .atlas__next li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 8px;
+    height: 1px;
+    background: var(--lume);
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 1080px) {
+    .atlas__notes {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .pipe__io {
+      display: none;
+    }
+    .pipe__flow {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 860px) {
+    .atlas__head {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+    .pipe__flow,
+    .pipe__panel,
+    .pipe__hint {
+      display: none !important;
+    }
+    .pipe__list {
+      position: relative;
+      display: grid;
+      gap: 0;
+    }
+    .pipe__list::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 18px;
+      bottom: 30px;
+      width: 1px;
+      background: var(--line-2);
+    }
+    .pipe__item {
+      position: relative;
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 16px;
+      padding: 14px 0;
+    }
+    .pipe__item-num {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 31px;
+      height: 31px;
+      border-radius: 50%;
+      border: 1px solid var(--line-3);
+      background: #061521;
+      color: var(--lume);
+      font-size: 0.6rem;
+      animation: stage-glow var(--cycle, 7s) linear infinite;
+      animation-delay: calc(var(--cycle, 7s) * (0.025 + var(--s, 0) * 0.14));
+    }
+    .pipe__item-name {
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .pipe__item-name .mono {
+      margin-left: 6px;
+      color: var(--ink-3);
+      text-transform: none;
+    }
+    .pipe__item-job {
+      margin-top: 4px;
+      color: var(--ink-2);
+      font-size: var(--fs-small);
+    }
+    .pipe__item--loop {
+      align-items: center;
+      color: var(--ink-3);
+    }
+    .pipe__item--loop .pipe__item-num {
+      animation: none;
+      color: var(--ink-3);
+    }
+  }
+  @media (max-width: 560px) {
+    .atlas {
+      padding: 26px 20px 30px;
+      border-radius: 18px;
+    }
+    .atlas__notes {
+      grid-template-columns: 1fr;
+    }
+    .atlas__repo {
+      width: 100%;
+    }
+  }
+</style>

@@ -1,0 +1,26 @@
+---
+import { depthOf, zones } from '../content/site';
+import { formatDepth } from '../lib/url';
+
+interface Props {
+  id: string;
+  label: string;
+  title: string;
+  intro?: string;
+  titleId?: string;
+  wide?: boolean;
+}
+const { id, label, title, intro, titleId = `${id}-title`, wide = false } = Astro.props;
+const depth = depthOf(id);
+const zone = zones.find((z) => depth >= z.from && depth < z.to) ?? zones[zones.length - 1];
+---
+
+<header class="section-head" data-reveal>
+  <p class="section-head__rule mono">
+    <span>{label}</span>
+    <span class="section-head__depth" aria-hidden="true" title={zone.name}>{formatDepth(depth)}</span>
+  </p>
+  <h2 class:list={['section-head__title', { 'section-head__title--wide': wide }]} id={titleId} set:html={title} />
+  {intro && <p class="section-head__intro">{intro}</p>}
+  <slot />
+</header>

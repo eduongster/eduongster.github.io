@@ -1,0 +1,417 @@
+---
+import SectionHead from './SectionHead.astro';
+import { experience, timeline } from '../content/site';
+
+const toMonths = (ym: string) => {
+  const [y, m] = ym.split('-').map(Number);
+  return y * 12 + (m - 1);
+};
+const nowYM = new Date().toISOString().slice(0, 7);
+const start = toMonths(timeline.start);
+const endAxis = toMonths(nowYM) + 1.5; // a little air after "now"
+const now = toMonths(nowYM) + 0.5;
+const span = endAxis - start;
+const pct = (m: number) => `${(((m - start) / span) * 100).toFixed(3)}%`;
+
+const monthName = (ym: string) =>
+  new Date(`${ym}-15T00:00:00Z`).toLocaleString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+
+const rows = timeline.rows.map((r) => {
+  if (r.kind === 'now') {
+    return { ...r, shape: 'now', left: pct(now), width: '0%', range: 'Now' };
+  }
+  const s = toMonths(r.start!);
+  const e = r.end ? toMonths(r.end) + 1 : now;
+  const single = r.end === r.start;
+  return {
+    ...r,
+    shape: single ? 'dot' : 'bar',
+    left: single ? pct(s + 0.5) : pct(s),
+    width: single ? '0%' : `${(((e - s) / span) * 100).toFixed(3)}%`,
+    ongoing: r.end === null,
+    range: single ? monthName(r.start!) : `${monthName(r.start!)} – ${r.end ? monthName(r.end) : 'Now'}`,
+  };
+});
+
+const ticks: { label: string; left: string }[] = [];
+for (let y = Number(timeline.start.slice(0, 4)) + 1; toMonths(`${y}-01`) < now - 2; y++) {
+  ticks.push({ label: String(y), left: pct(toMonths(`${y}-01`)) });
+}
+const targetFor = (id: string) =>
+  id === 'kumon' || id === 'pie' ? { href: `#exp-${id}` } : id === 'atlas' ? { href: '#atlas' } : { open: id };
+---
+
+<section id="experience" class="section experience" aria-labelledby="experience-title" data-station="experience">
+  <div class="container">
+    <SectionHead
+      id="experience"
+      label="Experience"
+      title="Where I’ve <em>been</em>"
+      intro="Teaching, robotics, and software, laid out on one timeline. Select a row to jump to it."
+    />
+
+    <figure class="tl" data-reveal>
+      <figcaption class="visually-hidden">
+        Timeline from late 2023 to now. Kumon, November 2023 to August 2025. PiE Robotics Competition, March to April 2024.
+        Pioneers in Engineering, August 2025 to now. CATS, October 2025. Scheme Interpreter, November 2025. BYOW, April
+        2026. Atlas, in progress now.
+      </figcaption>
+      <div class="tl__grid" aria-hidden="true">
+        {
+          ticks.map((t) => (
+            <span class="tl__tick" style={`left:${t.left}`}>
+              <span class="mono">{t.label}</span>
+            </span>
+          ))
+        }
+        <span class="tl__now" style={`left:${pct(now)}`}><span class="mono">Now</span></span>
+      </div>
+      <ol class="tl__rows">
+        {
+          rows.map((r) => {
+            const target = targetFor(r.id);
+            const inner = (
+              <>
+                <span class="tl__label">
+                  <span class="tl__name">{r.label}</span>
+                  <span class="tl__sub mono">{r.range}</span>
+                </span>
+                <span class="tl__plot" aria-hidden="true">
+                  <span
+                    class={`tl__mark tl__mark--${r.shape} ${r.kind === 'role' ? 'is-role' : 'is-project'} ${'ongoing' in r && r.ongoing ? 'is-ongoing' : ''}`}
+                    style={`left:${r.left};width:${r.width}`}
+                  />
+                </span>
+              </>
+            );
+            return (
+              <li class="tl__row">
+                {'href' in target ? (
+                  <a class="tl__hit" href={target.href}>
+                    {inner}
+                  </a>
+                ) : (
+                  <button class="tl__hit" type="button" data-open={target.open} aria-haspopup="dialog">
+                    {inner}
+                  </button>
+                )}
+              </li>
+            );
+          })
+        }
+      </ol>
+      <p class="tl__legend mono" aria-hidden="true">
+        <span><i class="tl__key tl__key--bar"></i> Role</span>
+        <span><i class="tl__key tl__key--dot"></i> Project</span>
+      </p>
+    </figure>
+
+    <div class="roles">
+      {
+        experience.map((r, i) => (
+          <article class="role" id={`exp-${r.id}`} aria-labelledby={`exp-${r.id}-title`} data-reveal style={`--i:${i}`}>
+            <div class="role__meta">
+              <p class="role__dates mono">{r.dates}</p>
+              <h3 class="role__org" id={`exp-${r.id}-title`}>
+                {r.org}
+              </h3>
+              <p class="role__role">
+                {r.role ?? r.kind}
+                <span class="role__place">
+                  <span aria-hidden="true"> · </span>
+                  {r.place}
+                </span>
+              </p>
+            </div>
+            <div class="role__body">
+              {r.stat && (
+                <p class="role__stat">
+                  <span class="role__stat-value">{r.stat.value}</span>
+                  <span class="role__stat-label">{r.stat.label}</span>
+                </p>
+              )}
+              <ul class="role__points">
+                {r.points.map((p) => (
+                  <li>{p}</li>
+                ))}
+              </ul>
+              {r.aside && <p class="role__aside chart-label">{r.aside}</p>}
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---------- Timeline chart ---------- */
+  .tl {
+    --label-w: 15.5rem;
+    position: relative;
+    padding: 34px 0 8px;
+    margin-bottom: clamp(56px, 8vw, 104px);
+  }
+  .tl__grid {
+    position: absolute;
+    top: 0;
+    bottom: 44px;
+    left: var(--label-w);
+    right: 0;
+    pointer-events: none;
+  }
+  .tl__tick,
+  .tl__now {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: var(--line);
+  }
+  .tl__tick .mono,
+  .tl__now .mono {
+    position: absolute;
+    top: 0;
+    left: 8px;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+  .tl__now {
+    background: linear-gradient(180deg, var(--lume-a32), rgba(127, 227, 208, 0.06));
+  }
+  .tl__now .mono {
+    left: auto;
+    right: 8px;
+    color: var(--lume);
+  }
+  .tl__rows {
+    position: relative;
+    padding-top: 30px;
+  }
+  .tl__hit {
+    display: grid;
+    grid-template-columns: var(--label-w) minmax(0, 1fr);
+    align-items: center;
+    width: 100%;
+    min-height: 54px;
+    text-align: left;
+    border-radius: 8px;
+    transition: background-color 0.3s;
+  }
+  .tl__hit:hover,
+  .tl__hit:focus-visible {
+    background: rgba(150, 196, 218, 0.05);
+  }
+  .tl__label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    padding: 6px 18px 6px 10px;
+    min-width: 0;
+  }
+  .tl__name {
+    color: var(--ink);
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tl__sub {
+    color: var(--ink-3);
+    text-transform: none;
+    letter-spacing: 0.01em;
+    font-size: 0.62rem;
+    white-space: nowrap;
+  }
+  .tl__plot {
+    position: relative;
+    height: 54px;
+  }
+  .tl__mark {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    transition:
+      box-shadow 0.4s,
+      background-color 0.4s;
+  }
+  .tl__mark--bar {
+    height: 6px;
+    border-radius: 4px;
+    background: rgba(127, 227, 208, 0.62);
+  }
+  .tl__mark--bar.is-project {
+    background: rgba(169, 188, 199, 0.55);
+  }
+  .tl__mark--bar.is-ongoing {
+    background: linear-gradient(90deg, rgba(127, 227, 208, 0.62) 70%, rgba(127, 227, 208, 0.12));
+  }
+  .tl__mark--dot {
+    width: 10px !important;
+    height: 10px;
+    margin-left: -5px;
+    border-radius: 50%;
+    background: var(--deep);
+    border: 2px solid var(--ink-2);
+  }
+  .tl__mark--now {
+    width: 12px !important;
+    height: 12px;
+    margin-left: -6px;
+    border-radius: 50%;
+    background: var(--lume-bright);
+    box-shadow:
+      0 0 0 4px rgba(127, 227, 208, 0.16),
+      0 0 18px 2px rgba(127, 227, 208, 0.6);
+  }
+  .tl__hit:hover .tl__mark--bar,
+  .tl__hit:focus-visible .tl__mark--bar {
+    box-shadow: 0 0 16px 1px rgba(127, 227, 208, 0.45);
+  }
+  .tl__hit:hover .tl__mark--dot,
+  .tl__hit:focus-visible .tl__mark--dot {
+    border-color: var(--lume);
+    box-shadow: 0 0 12px 1px rgba(127, 227, 208, 0.5);
+  }
+  .tl__legend {
+    display: flex;
+    gap: 22px;
+    justify-content: flex-end;
+    margin-top: 18px;
+    color: var(--ink-3);
+  }
+  .tl__legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tl__key--bar {
+    width: 18px;
+    height: 6px;
+    border-radius: 4px;
+    background: rgba(127, 227, 208, 0.62);
+  }
+  .tl__key--dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--ink-2);
+  }
+
+  /* ---------- Roles ---------- */
+  .roles {
+    display: grid;
+  }
+  .role {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(24px, 5vw, 80px);
+    padding: clamp(34px, 5vw, 56px) 0;
+    border-top: 1px solid var(--line-2);
+    scroll-margin-top: calc(var(--nav-h) + 40px);
+  }
+  .role:last-child {
+    border-bottom: 1px solid var(--line-2);
+  }
+  .role__dates {
+    color: var(--lume);
+  }
+  .role__org {
+    margin-top: 14px;
+    font-family: var(--font-display);
+    font-size: var(--fs-h3);
+    line-height: 1.02;
+  }
+  .role__role {
+    margin-top: 10px;
+    color: var(--ink-2);
+  }
+  .role__place {
+    color: var(--ink-3);
+  }
+  .role__body {
+    display: grid;
+    gap: 20px;
+    align-content: start;
+  }
+  .role__stat {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .role__stat-value {
+    font-size: clamp(2.6rem, 2rem + 2vw, 3.6rem);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .role__stat-label {
+    color: var(--ink-2);
+    max-width: 18ch;
+    line-height: 1.35;
+  }
+  .role__points {
+    display: grid;
+    gap: 12px;
+  }
+  .role__points li {
+    position: relative;
+    padding-left: 22px;
+    color: var(--ink-2);
+  }
+  .role__points li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.8em;
+    width: 10px;
+    height: 1px;
+    background: var(--lume);
+  }
+  .role__aside {
+    padding: 14px 18px;
+    border-left: 1px solid var(--lume-a32);
+    color: var(--ink);
+    font-size: 1.12rem;
+    line-height: 1.45;
+  }
+
+  @media (max-width: 860px) {
+    .tl {
+      --label-w: 0px;
+    }
+    .tl__grid {
+      left: 0;
+      bottom: 44px;
+    }
+    .tl__hit {
+      grid-template-columns: 1fr;
+      padding: 8px 0 4px;
+    }
+    .tl__label {
+      flex-direction: row;
+      align-items: baseline;
+      gap: 10px;
+      padding: 0 4px;
+    }
+    .tl__plot {
+      height: 26px;
+    }
+    .role {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 480px) {
+    .tl__label {
+      flex-direction: column;
+      gap: 2px;
+    }
+    .tl__name {
+      white-space: normal;
+    }
+  }
+</style>

@@ -1,0 +1,266 @@
+---
+import SectionHead from './SectionHead.astro';
+import { about } from '../content/site';
+---
+
+<section id="about" class="section about" aria-labelledby="about-title" data-station="about">
+  <div class="container">
+    <SectionHead id="about" label="About" title={about.title.replace('surface', '<em>surface</em>')} />
+
+    <div class="about__grid">
+      <div class="about__text">
+        <p class="about__lead" data-reveal>{about.lead}</p>
+        {
+          about.body.map((p, i) => (
+            <p class="about__body" data-reveal style={`--i:${i + 1}`}>
+              {p}
+            </p>
+          ))
+        }
+        <dl class="about__log" data-reveal style="--i:3">
+          {
+            about.log.map((row) => (
+              <div class="about__log-row">
+                <dt class="mono">{row.k}</dt>
+                <dd>{row.v}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+
+      <figure class="pools" data-reveal data-pools style="--i:2">
+        <div class="pools__stage">
+          {
+            about.pools.map((p) => (
+              <button
+                class={`pool pool--${p.id}`}
+                data-pool={p.id}
+                aria-pressed="false"
+                type="button"
+                aria-describedby={`pool-cap-${p.id}`}
+              >
+                <span class="pool__label">{p.label}</span>
+              </button>
+            ))
+          }
+          <span class="pools__center mono" aria-hidden="true">{about.poolsCenter.label}</span>
+        </div>
+        <figcaption class="pools__caption">
+          <p class="pools__cap pools__cap--center" id="pool-cap-center">
+            <span class="mono">Software ∩ Data ∩ AI</span>
+            {about.poolsCenter.caption}
+          </p>
+          {
+            about.pools.map((p) => (
+              <p class={`pools__cap pools__cap--${p.id}`} id={`pool-cap-${p.id}`}>
+                <span class="mono">{p.label}</span>
+                {p.caption}
+              </p>
+            ))
+          }
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: clamp(40px, 6vw, 96px);
+    align-items: start;
+  }
+  .about__text {
+    display: grid;
+    gap: 22px;
+    max-width: 62ch;
+  }
+  .about__lead {
+    font-size: var(--fs-lead);
+    line-height: 1.45;
+    color: var(--ink);
+    letter-spacing: -0.004em;
+  }
+  .about__body {
+    color: var(--ink-2);
+  }
+  .about__log {
+    margin-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+  .about__log-row {
+    display: grid;
+    grid-template-columns: 9.5rem 1fr;
+    gap: 16px;
+    align-items: baseline;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .about__log dt {
+    color: var(--ink-3);
+  }
+  .about__log dd {
+    color: var(--ink);
+    font-size: var(--fs-small);
+  }
+
+  /* ---------- Light pools: where software, data, and AI overlap ---------- */
+  .pools {
+    position: relative;
+    display: grid;
+    gap: 22px;
+    margin-top: 8px;
+  }
+  .pools__stage {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    aspect-ratio: 1 / 0.96;
+    margin-inline: auto;
+    isolation: isolate;
+  }
+  .pool {
+    --c: 127, 227, 208;
+    position: absolute;
+    width: 62%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid rgba(var(--c), 0.28);
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(var(--c), 0.17) 0%,
+      rgba(var(--c), 0.08) 55%,
+      rgba(var(--c), 0.03) 70%
+    );
+    mix-blend-mode: screen;
+    transition:
+      opacity 0.5s var(--ease-out),
+      border-color 0.5s var(--ease-out),
+      transform 0.8s var(--ease-out),
+      box-shadow 0.6s var(--ease-out);
+    color: var(--ink);
+  }
+  .pool--software {
+    left: 0;
+    top: 0;
+  }
+  .pool--data {
+    --c: 128, 182, 238;
+    right: 0;
+    top: 0;
+  }
+  .pool--ai {
+    --c: 200, 236, 246;
+    left: 19%;
+    bottom: 0;
+  }
+  .pool__label {
+    position: absolute;
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 1.1rem + 0.8vw, 1.75rem);
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .pool--software .pool__label {
+    left: 20%;
+    top: 30%;
+  }
+  .pool--data .pool__label {
+    right: 24%;
+    top: 30%;
+  }
+  .pool--ai .pool__label {
+    left: 50%;
+    bottom: 17%;
+    transform: translateX(-50%);
+  }
+  .pools__center {
+    position: absolute;
+    left: 50%;
+    top: 49%;
+    transform: translate(-50%, -50%);
+    width: 7.5em;
+    text-align: center;
+    line-height: 1.5;
+    color: var(--lume-bright);
+    text-shadow: 0 0 18px rgba(127, 227, 208, 0.65);
+    pointer-events: none;
+  }
+  .pools__stage:has(.pool:hover, .pool:focus-visible) .pool:not(:hover, :focus-visible),
+  .pools[data-active] .pool:not(.is-active) {
+    opacity: 0.38;
+  }
+  .pool:hover,
+  .pool:focus-visible,
+  .pool.is-active {
+    border-color: rgba(var(--c), 0.7);
+    box-shadow:
+      0 0 60px -10px rgba(var(--c), 0.35),
+      inset 0 0 40px -10px rgba(var(--c), 0.3);
+    outline: none;
+  }
+  .pool:focus-visible .pool__label {
+    text-decoration: underline;
+    text-decoration-color: var(--lume);
+    text-underline-offset: 6px;
+  }
+
+  .pools__caption {
+    display: grid;
+    min-height: 7.5em;
+    max-width: 440px;
+    margin-inline: auto;
+    width: 100%;
+  }
+  .pools__cap {
+    grid-area: 1 / 1;
+    color: var(--ink-2);
+    font-size: var(--fs-small);
+    line-height: 1.55;
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 0.45s var(--ease-out),
+      transform 0.5s var(--ease-out);
+  }
+  .pools__cap .mono {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--lume);
+  }
+  .pools__cap--center {
+    opacity: 1;
+    transform: none;
+  }
+  .pools:has(.pool:hover, .pool:focus-visible) .pools__cap--center,
+  .pools[data-active] .pools__cap--center {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  .pools:has(.pool--software:hover, .pool--software:focus-visible) .pools__cap--software,
+  .pools:has(.pool--data:hover, .pool--data:focus-visible) .pools__cap--data,
+  .pools:has(.pool--ai:hover, .pool--ai:focus-visible) .pools__cap--ai,
+  .pools[data-active='software'] .pools__cap--software,
+  .pools[data-active='data'] .pools__cap--data,
+  .pools[data-active='ai'] .pools__cap--ai {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (max-width: 900px) {
+    .about__grid {
+      grid-template-columns: 1fr;
+    }
+    .pools {
+      margin-top: 24px;
+    }
+  }
+  @media (max-width: 520px) {
+    .about__log-row {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+  }
+</style>

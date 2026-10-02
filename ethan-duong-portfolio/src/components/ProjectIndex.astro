@@ -1,0 +1,512 @@
+---
+import Icon from './Icon.astro';
+import Sketch from './Sketch.astro';
+import { projects } from '../content/site';
+---
+
+<div class="index" data-index>
+  <div class="index__head" data-reveal>
+    <h3 class="index__title">More builds</h3>
+    <p class="index__sub">From a game engine to a competition robot. Open any of them for the full story.</p>
+  </div>
+
+  <div class="index__body">
+    <ol class="index__list" data-reveal style="--i:1">
+      {
+        projects.map((p, i) => (
+          <li class="row" data-project={p.id} data-active={i === 0 ? 'true' : undefined}>
+            <button class="row__btn" type="button" data-open={p.id} aria-haspopup="dialog">
+              <span class="row__date mono">{p.date}</span>
+              <span class="row__main">
+                <span class="row__name">
+                  {p.name}
+                  {p.fullName && <span class="row__full chart-label">{p.fullName}</span>}
+                </span>
+                <span class="row__tagline">{p.tagline}</span>
+                <span class="row__stack">
+                  {p.stack.map((t) => (
+                    <span class="tag">{t}</span>
+                  ))}
+                </span>
+              </span>
+              <span class="row__open" aria-hidden="true">
+                <Icon name="arrow-out" size={20} />
+              </span>
+              <span class="visually-hidden">, open project details</span>
+            </button>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="index__pane" aria-hidden="true" data-reveal style="--i:2">
+      <div class="index__pane-inner">
+        {
+          projects.map((p, i) => (
+            <div class="pane" data-pane={p.id} data-active={i === 0 ? 'true' : undefined}>
+              <Sketch kind={p.id} size="pane" />
+              <p class="pane__caption">
+                <span class="mono">Live sketch</span>
+                <span>{p.sketch}</span>
+              </p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+{
+  projects.map((p) => (
+    <dialog class="dialog" id={`dialog-${p.id}`} aria-labelledby={`dialog-${p.id}-title`} data-dialog={p.id}>
+      <div class="dialog__inner">
+        <header class="dialog__head">
+          <div>
+            <p class="dialog__meta mono">
+              {p.date} <span aria-hidden="true">·</span> {p.stack.join(' · ')}
+            </p>
+            <h3 class="dialog__title" id={`dialog-${p.id}-title`}>
+              {p.name}
+              {p.fullName && <span class="chart-label">{p.fullName}</span>}
+            </h3>
+            <p class="dialog__tagline">{p.tagline}</p>
+          </div>
+          <button class="dialog__close" type="button" data-close aria-label="Close project details">
+            <Icon name="close" size={20} />
+          </button>
+        </header>
+
+        <div class="dialog__grid">
+        <figure class="dialog__figure">
+          <Sketch kind={p.id} size="dialog" />
+          <figcaption class="dialog__caption">
+            <span class="mono">Live sketch</span>
+            <span>{p.sketch}. Drawn in your browser to show the idea, not the project’s code.</span>
+          </figcaption>
+        </figure>
+
+        <div class="dialog__body">
+          <section>
+            <h4 class="mono">The problem</h4>
+            <p>{p.problem}</p>
+          </section>
+          <section>
+            <h4 class="mono">What I built</h4>
+            <ul class="dialog__list">
+              {p.built.map((b) => (
+                <li>{b}</li>
+              ))}
+            </ul>
+          </section>
+          <section>
+            <h4 class="mono">Under the hood</h4>
+            <p>{p.detail}</p>
+          </section>
+          {p.link && (
+            <a class="btn" href={p.link} target="_blank" rel="noopener">
+              View project <Icon name="arrow-out" class="arrow-out" />
+            </a>
+          )}
+        </div>
+        </div>
+      </div>
+    </dialog>
+  ))
+}
+
+<style>
+  .index {
+    margin-top: clamp(96px, 12vw, 160px);
+  }
+  .index__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px 32px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--line-2);
+  }
+  .index__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-h3);
+    line-height: 1;
+  }
+  .index__sub {
+    color: var(--ink-2);
+    font-size: var(--fs-small);
+    max-width: 46ch;
+  }
+  .index__body {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: clamp(28px, 4.5vw, 72px);
+    align-items: start;
+  }
+
+  /* ---------- Rows ---------- */
+  .row {
+    border-bottom: 1px solid var(--line);
+  }
+  .row__btn {
+    position: relative;
+    display: grid;
+    grid-template-columns: 8.2rem minmax(0, 1fr) auto;
+    gap: 20px;
+    width: 100%;
+    padding: 30px 8px 30px 0;
+    text-align: left;
+    color: var(--ink);
+    isolation: isolate;
+  }
+  .row__btn::before {
+    content: '';
+    position: absolute;
+    inset: 0 -14px;
+    z-index: -1;
+    border-radius: 12px;
+    background: linear-gradient(90deg, rgba(127, 227, 208, 0.07), rgba(127, 227, 208, 0) 75%);
+    opacity: 0;
+    transition: opacity 0.5s var(--ease-out);
+  }
+  .row__date {
+    padding-top: 0.95rem;
+    color: var(--ink-3);
+    transition: color 0.4s;
+  }
+  .row__main {
+    display: grid;
+    gap: 8px;
+  }
+  .row__name {
+    font-family: var(--font-display);
+    font-size: clamp(1.9rem, 1.5rem + 1.3vw, 2.75rem);
+    line-height: 1.05;
+    transition: transform 0.6s var(--ease-out);
+  }
+  .row__full {
+    margin-left: 0.5em;
+    font-size: 0.5em;
+    color: var(--ink-3);
+    vertical-align: 0.2em;
+    white-space: nowrap;
+  }
+  .row__tagline {
+    color: var(--ink-2);
+    font-size: var(--fs-small);
+    max-width: 48ch;
+  }
+  .row__stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+  }
+  .row__open {
+    align-self: start;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-top: 0.4rem;
+    border-radius: 50%;
+    border: 1px solid var(--line-2);
+    color: var(--ink-2);
+    transition:
+      color 0.4s,
+      border-color 0.4s,
+      background-color 0.4s,
+      transform 0.6s var(--ease-out);
+  }
+  .row__btn:hover::before,
+  .row__btn:focus-visible::before {
+    opacity: 1;
+  }
+  .row__btn:hover .row__name,
+  .row__btn:focus-visible .row__name {
+    transform: translateX(8px);
+  }
+  @media (min-width: 961px) {
+    .row[data-active='true'] .row__btn::before {
+      opacity: 1;
+    }
+    .row[data-active='true'] .row__name {
+      transform: translateX(8px);
+    }
+    .row[data-active='true'] .row__date {
+      color: var(--lume);
+    }
+  }
+  .row__btn:hover .row__open,
+  .row__btn:focus-visible .row__open {
+    color: var(--lume-ink);
+    background: var(--lume);
+    border-color: var(--lume);
+    transform: rotate(45deg);
+  }
+  .row__btn:hover .tag,
+  .row__btn:focus-visible .tag {
+    border-color: var(--lume-a32);
+    color: var(--ink);
+  }
+  .row__btn:hover .tag:nth-child(2) {
+    transition-delay: 40ms;
+  }
+  .row__btn:hover .tag:nth-child(3) {
+    transition-delay: 80ms;
+  }
+  .row__btn:focus-visible {
+    outline-offset: 6px;
+  }
+
+  /* ---------- Preview pane ---------- */
+  .index__pane {
+    position: sticky;
+    top: calc(var(--nav-h) + 48px);
+    margin-top: 30px;
+  }
+  .index__pane-inner {
+    display: grid;
+  }
+  .pane {
+    grid-area: 1 / 1;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px) scale(0.985);
+    transition:
+      opacity 0.55s var(--ease-out),
+      transform 0.7s var(--ease-out),
+      visibility 0s linear 0.55s;
+  }
+  .pane[data-active='true'] {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+      opacity 0.55s var(--ease-out),
+      transform 0.7s var(--ease-out),
+      visibility 0s;
+  }
+  .pane__caption {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    margin-top: 14px;
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+  .pane__caption .mono {
+    color: var(--lume);
+    white-space: nowrap;
+  }
+
+  /* ---------- Dialog ---------- */
+  .dialog {
+    width: min(1120px, calc(100vw - 32px));
+    max-height: min(92vh, 980px);
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--line-2);
+    border-radius: 20px;
+    background:
+      radial-gradient(90% 60% at 10% 0%, rgba(24, 66, 90, 0.5), transparent 60%),
+      linear-gradient(180deg, #081a28, #040d15);
+    color: var(--ink);
+    box-shadow: 0 60px 160px -40px rgba(0, 0, 0, 0.95);
+    overscroll-behavior: contain;
+  }
+  .dialog::backdrop {
+    background: rgba(1, 5, 9, 0.72);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+  .dialog[open] {
+    animation: dialog-in 0.55s var(--ease-out);
+  }
+  .dialog[open]::backdrop {
+    animation: fade-in 0.4s var(--ease-out);
+  }
+  .dialog.is-closing {
+    animation: dialog-out 0.28s var(--ease-in-out) forwards;
+  }
+  .dialog.is-closing::backdrop {
+    animation: fade-out 0.28s var(--ease-in-out) forwards;
+  }
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(24px) scale(0.98);
+    }
+  }
+  @keyframes dialog-out {
+    to {
+      opacity: 0;
+      transform: translateY(16px) scale(0.985);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+  .dialog__inner {
+    display: grid;
+    gap: 28px;
+    padding: clamp(22px, 4vw, 44px);
+  }
+  .dialog__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 20px;
+  }
+  .dialog__meta {
+    color: var(--lume);
+  }
+  .dialog__title {
+    margin-top: 12px;
+    font-family: var(--font-display);
+    font-size: clamp(2.3rem, 1.6rem + 3vw, 3.8rem);
+    line-height: 1;
+  }
+  .dialog__title .chart-label {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.45em;
+    color: var(--ink-2);
+  }
+  .dialog__tagline {
+    margin-top: 14px;
+    color: var(--ink-2);
+    max-width: 54ch;
+  }
+  .dialog__close {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--line-2);
+    color: var(--ink);
+    transition:
+      background-color 0.3s,
+      border-color 0.3s,
+      transform 0.5s var(--ease-out);
+  }
+  .dialog__close:hover {
+    background: var(--lume-a08);
+    border-color: var(--lume-a32);
+    transform: rotate(90deg);
+  }
+  .dialog__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: clamp(24px, 3.5vw, 48px);
+    align-items: start;
+  }
+  .dialog__figure {
+    display: grid;
+    gap: 12px;
+  }
+  .dialog__caption {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 8px 12px;
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+  .dialog__caption .mono {
+    color: var(--lume);
+  }
+  .dialog__body {
+    display: grid;
+    gap: 24px;
+    align-content: start;
+  }
+  .dialog__body section + section {
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+  }
+  .dialog__body h4 {
+    color: var(--ink-3);
+    margin-bottom: 10px;
+  }
+  .dialog__body p,
+  .dialog__list li {
+    color: var(--ink-2);
+    font-size: var(--fs-small);
+  }
+  .dialog__list {
+    display: grid;
+    gap: 9px;
+  }
+  .dialog__list li {
+    position: relative;
+    padding-left: 16px;
+    line-height: 1.5;
+  }
+  .dialog__list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.68em;
+    width: 7px;
+    height: 1px;
+    background: var(--lume);
+  }
+  .dialog__body .btn {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  @media (max-width: 960px) {
+    .index__body {
+      grid-template-columns: 1fr;
+    }
+    .index__pane {
+      display: none;
+    }
+    .row__btn::before {
+      inset: 0 -10px;
+    }
+  }
+  @media (max-width: 860px) {
+    .dialog__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 600px) {
+    .row__btn {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px 14px;
+      padding: 26px 0;
+    }
+    .row__date {
+      grid-column: 1 / -1;
+      padding-top: 0;
+    }
+    .row__open {
+      width: 40px;
+      height: 40px;
+    }
+    .row__full {
+      display: block;
+      margin: 6px 0 0;
+      font-size: 0.55em;
+      vertical-align: baseline;
+    }
+    .dialog {
+      width: calc(100vw - 16px);
+      max-height: calc(100svh - 16px);
+      border-radius: 16px;
+    }
+  }
+</style>

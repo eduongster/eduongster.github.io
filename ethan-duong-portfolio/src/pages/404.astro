@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+import { withBase } from '../lib/url';
+---
+
+<Base>
+  <main class="lost" id="main">
+    <p class="lost__depth mono"><span class="unit">404 m</span> · <span class="chart-label">Off the chart</span></p>
+    <h1 class="lost__title">Lost at <em>sea.</em></h1>
+    <p class="lost__body">This page drifted off somewhere. The rest of the site is right where you left it.</p>
+    <a class="btn btn--primary" href={withBase('/')}>Swim back to the surface</a>
+  </main>
+</Base>
+
+<style>
+  .lost {
+    min-height: 100svh;
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    gap: 22px;
+    max-width: calc(var(--maxw) + var(--gutter) * 2);
+    margin-inline: auto;
+    padding: 80px var(--gutter);
+  }
+  .lost__depth {
+    color: var(--lume);
+  }
+  .lost__depth .chart-label {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.95rem;
+    color: var(--ink-2);
+  }
+  .lost__title {
+    font-family: var(--font-display);
+    font-size: clamp(3.6rem, 1.6rem + 8vw, 8.5rem);
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+  }
+  .lost__title em {
+    color: var(--lume-bright);
+  }
+  .lost__body {
+    max-width: 44ch;
+    color: var(--ink-2);
+    font-size: var(--fs-lead);
+  }
+</style>

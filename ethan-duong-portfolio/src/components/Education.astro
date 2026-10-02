@@ -1,0 +1,114 @@
+---
+import SectionHead from './SectionHead.astro';
+import { education } from '../content/site';
+---
+
+<section id="education" class="section education" aria-labelledby="education-title" data-station="education">
+  <div class="container">
+    <SectionHead id="education" label="Education" title="University of California, <em>Berkeley</em>" wide />
+
+    <div class="edu">
+      <div class="edu__main" data-reveal>
+        <p class="edu__degree">{education.degree}</p>
+        <dl class="edu__facts">
+          <div>
+            <dt class="mono">Graduation</dt>
+            <dd>{education.grad}</dd>
+          </div>
+          <div>
+            <dt class="mono">Campus</dt>
+            <dd>{education.place}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="edu__courses" data-reveal style="--i:1">
+        <h3 class="edu__label mono">Relevant coursework</h3>
+        <div class="edu__groups">
+          {
+            education.coursework.map((g) => (
+              <div class="edu__group">
+                <p class="edu__group-name chart-label">{g.group}</p>
+                <ul>
+                  {g.items.map((c) => (
+                    <li>{c}</li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .edu {
+    display: grid;
+    grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+    gap: clamp(36px, 6vw, 96px);
+    align-items: start;
+  }
+  .edu__degree {
+    font-size: clamp(1.35rem, 1.1rem + 1vw, 1.9rem);
+    line-height: 1.3;
+    color: var(--ink);
+    max-width: 22ch;
+  }
+  .edu__facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line-2);
+  }
+  .edu__facts dt {
+    color: var(--ink-3);
+  }
+  .edu__facts dd {
+    margin-top: 6px;
+    color: var(--ink);
+  }
+  .edu__label {
+    color: var(--ink-3);
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line-2);
+  }
+  .edu__groups {
+    display: grid;
+  }
+  .edu__group {
+    display: grid;
+    grid-template-columns: 9.5rem minmax(0, 1fr);
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .edu__group-name {
+    color: var(--ink-2);
+    font-size: 1.1rem;
+    line-height: 1.4;
+  }
+  .edu__group ul {
+    display: grid;
+    gap: 6px;
+  }
+  .edu__group li {
+    color: var(--ink);
+    font-size: var(--fs-small);
+    line-height: 1.5;
+  }
+  @media (max-width: 860px) {
+    .edu {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 480px) {
+    .edu__group {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+  }
+</style>

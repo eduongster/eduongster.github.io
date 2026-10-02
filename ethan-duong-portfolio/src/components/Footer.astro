@@ -1,0 +1,97 @@
+---
+import Icon from './Icon.astro';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container footer">
+    <p class="footer__copy">© {year} Ethan Duong</p>
+    <p class="footer__note">
+      Built with Astro. The fish run on a boids flocking model: separation, alignment, cohesion. They also seem hungry.
+    </p>
+    <div class="footer__end">
+      <button class="lure" type="button" aria-pressed="false" data-lure>
+        <span class="lure__light" aria-hidden="true"></span>
+        <span class="visually-hidden">Deep sea mode</span>
+      </button>
+      <a class="footer__top" href="#top">
+        Back to the surface <Icon name="arrow-up" size={15} />
+      </a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px 40px;
+    padding-block: 28px calc(28px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--line);
+    color: var(--ink-3);
+    font-size: 0.875rem;
+  }
+  .footer__note {
+    max-width: 64ch;
+  }
+  .footer__end {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .footer__top {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    color: var(--ink-2);
+    transition: color 0.3s;
+  }
+  .footer__top:hover {
+    color: var(--lume-bright);
+  }
+  .lure {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+  }
+  .lure__light {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--lure);
+    opacity: 0.55;
+    box-shadow: 0 0 10px 2px rgba(242, 184, 114, 0.45);
+    animation: lure 5s ease-in-out infinite;
+    transition:
+      opacity 0.4s,
+      transform 0.4s var(--ease-out);
+  }
+  .lure:hover .lure__light,
+  .lure:focus-visible .lure__light,
+  .lure[aria-pressed='true'] .lure__light {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+  @keyframes lure {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-3px);
+    }
+  }
+  @media (max-width: 860px) {
+    .footer {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .footer__end {
+      justify-content: space-between;
+    }
+  }
+</style>

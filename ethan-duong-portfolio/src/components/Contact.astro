@@ -1,0 +1,264 @@
+---
+import Icon from './Icon.astro';
+import { person, contact } from '../content/site';
+import { withBase } from '../lib/url';
+
+const resume = withBase(person.resumeFile);
+---
+
+<section id="contact" class="contact" aria-labelledby="contact-title" data-station="contact">
+  <div class="contact__floor" aria-hidden="true">
+    <canvas class="contact__chart" data-seafloor></canvas>
+  </div>
+
+  <div class="container contact__inner">
+    <p class="section-head__rule mono" data-reveal>
+      <span>Contact</span>
+      <span class="section-head__depth" aria-hidden="true">4,000 m</span>
+    </p>
+
+    <h2 class="contact__title" id="contact-title" data-reveal style="--i:1">
+      Drop me a <em>line.</em>
+    </h2>
+    <p class="contact__body" data-reveal style="--i:2">{contact.body}</p>
+
+    <div class="contact__email" data-reveal style="--i:3">
+      <a class="contact__email-link" href={`mailto:${person.email}`}>
+        <Icon name="mail" size={22} class="contact__email-icon" />
+        <span class="contact__email-text">{person.email}</span>
+      </a>
+      <button class="copy" type="button" data-copy={person.email} data-copy-label="Email">
+        <Icon name="copy" size={16} class="copy__icon" />
+        <Icon name="check" size={16} class="copy__done" />
+        <span data-copy-text>Copy</span>
+      </button>
+    </div>
+
+    <ul class="contact__grid" data-reveal style="--i:4">
+      <li class="card">
+        <span class="card__label mono">Phone</span>
+        <a class="card__value" href={person.phoneHref}>{person.phone}</a>
+        <button class="copy copy--small" type="button" data-copy={person.phone} data-copy-label="Phone number">
+          <Icon name="copy" size={15} class="copy__icon" />
+          <Icon name="check" size={15} class="copy__done" />
+          <span data-copy-text>Copy</span>
+        </button>
+      </li>
+      <li class="card">
+        <span class="card__label mono">LinkedIn</span>
+        <a class="card__value card__link" href={person.linkedin} target="_blank" rel="noopener">
+          {person.linkedinLabel}
+          <Icon name="arrow-out" size={16} class="arrow-out" />
+        </a>
+      </li>
+      <li class="card">
+        <span class="card__label mono">GitHub</span>
+        <a class="card__value card__link" href={person.github} target="_blank" rel="noopener">
+          {person.githubLabel}
+          <Icon name="arrow-out" size={16} class="arrow-out" />
+        </a>
+      </li>
+      <li class="card">
+        <span class="card__label mono">Resume</span>
+        <a class="card__value card__link" href={resume} target="_blank" rel="noopener" data-resume-link>
+          Ethan_Duong_Resume.pdf
+          <Icon name="doc" size={16} />
+        </a>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<style>
+  .contact {
+    position: relative;
+    min-height: min(100svh, 1000px);
+    padding-block: var(--section-pad) clamp(200px, 26vw, 320px);
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .contact__floor {
+    position: absolute;
+    inset: 36% 0 0 0;
+    z-index: -1;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.35) 30%, #000 62%);
+    mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.35) 30%, #000 62%);
+  }
+  .contact__chart {
+    width: 100%;
+    height: 100%;
+  }
+  .contact__inner {
+    position: relative;
+  }
+  .contact__title {
+    margin-top: clamp(28px, 4vw, 44px);
+    font-family: var(--font-display);
+    font-size: clamp(3.6rem, 1.4rem + 8.6vw, 9.5rem);
+    line-height: 0.92;
+    letter-spacing: -0.025em;
+    margin-left: -0.04em;
+  }
+  .contact__title em {
+    font-style: italic;
+    color: var(--lume-bright);
+    text-shadow: 0 0 50px rgba(127, 227, 208, 0.35);
+  }
+  .contact__body {
+    margin-top: 26px;
+    max-width: 50ch;
+    font-size: var(--fs-lead);
+    line-height: 1.5;
+    color: var(--ink-2);
+  }
+
+  .contact__email {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 22px;
+    margin-top: clamp(40px, 5vw, 60px);
+    padding-bottom: 26px;
+    border-bottom: 1px solid var(--line-2);
+  }
+  .contact__email-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+    font-size: clamp(1.25rem, 0.8rem + 2.3vw, 2.5rem);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    color: var(--ink);
+    transition: color 0.3s;
+    overflow-wrap: anywhere;
+  }
+  .contact__email-link :global(.contact__email-icon) {
+    flex: none;
+    color: var(--lume);
+  }
+  .contact__email-link:hover {
+    color: var(--lume-bright);
+  }
+  .contact__email-text {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.5s var(--ease-out);
+    padding-bottom: 4px;
+  }
+  .contact__email-link:hover .contact__email-text {
+    background-size: 100% 1px;
+  }
+
+  .copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    color: var(--ink-2);
+    font-size: 0.9rem;
+    transition:
+      color 0.3s,
+      border-color 0.3s,
+      background-color 0.3s;
+  }
+  .copy:hover {
+    color: var(--ink);
+    border-color: var(--lume-a32);
+    background: var(--lume-a08);
+  }
+  .copy :global(.copy__done) {
+    display: none;
+    color: var(--lume);
+  }
+  .copy.is-done :global(.copy__done) {
+    display: block;
+  }
+  .copy.is-done :global(.copy__icon) {
+    display: none;
+  }
+  .copy--small {
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 0.85rem;
+  }
+
+  .contact__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    margin-top: 8px;
+  }
+  .card {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    padding: 22px 22px 22px 0;
+    min-width: 0;
+  }
+  .card + .card {
+    padding-left: 22px;
+    border-left: 1px solid var(--line);
+  }
+  .card__label {
+    color: var(--ink-3);
+  }
+  .card__value {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink);
+    font-size: 1rem;
+    overflow-wrap: anywhere;
+    transition: color 0.3s;
+  }
+  .card__link:hover {
+    color: var(--lume-bright);
+  }
+  .card__link :global(.arrow-out) {
+    flex: none;
+    transition: transform 0.4s var(--ease-out);
+  }
+  .card__link:hover :global(.arrow-out) {
+    transform: translate(2px, -2px);
+  }
+  .card .copy {
+    justify-self: start;
+  }
+
+  @media (max-width: 1000px) {
+    .contact__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .card:nth-child(3) {
+      padding-left: 0;
+      border-left: 0;
+    }
+    .card:nth-child(n + 3) {
+      border-top: 1px solid var(--line);
+    }
+  }
+  @media (max-width: 560px) {
+    .contact__grid {
+      grid-template-columns: 1fr;
+    }
+    .card,
+    .card + .card {
+      padding: 18px 0;
+      border-left: 0;
+    }
+    .card + .card {
+      border-top: 1px solid var(--line);
+    }
+    .contact__email-link {
+      gap: 12px;
+    }
+  }
+</style>
